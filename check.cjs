@@ -1,0 +1,28 @@
+const {chromium}=require('C:/Users/PaulCébille/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+(async()=>{
+const browser=await chromium.launch({headless:true,channel:'msedge'});
+const page=await browser.newPage({viewport:{width:1440,height:1000}});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto('http://127.0.0.1:8765');
+await page.locator('.graphic img').first().waitFor();
+if(await page.locator('.slide-section').count()!==27)throw Error('Nombre de diapositives');
+const ids=await page.locator('.slide-section').evaluateAll(es=>es.map(e=>e.id));
+if(ids.join(',')!==[7,9,10,11,12,13,14,15,16,17,19,20,21,22,23,24,25,26,27,28,30,31,32,33,34,35,36].map(n=>'slide-'+n).join(','))throw Error('Ordre');
+await page.screenshot({path:'desktop.png'});
+await page.locator('.graphic').first().click();
+if(!await page.locator('dialog').isVisible())throw Error('Zoom');
+await page.locator('#zoom').fill('200');
+if(await page.locator('#zoom-value').textContent()!=='200 %')throw Error('Zoom value');
+await page.locator('#close-viewer').click();
+await page.selectOption('#jump','slide-36');
+await page.waitForTimeout(900);
+if(!await page.locator('#slide-36').isVisible())throw Error('Navigation');
+await page.setViewportSize({width:390,height:844});
+await page.goto('http://127.0.0.1:8765');
+await page.screenshot({path:'mobile.png'});
+if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error('Débordement mobile');
+const images=await page.locator('.graphic img').evaluateAll(async imgs=>{await Promise.all(imgs.map(i=>{i.loading='eager';return i.decode().catch(()=>{})}));return imgs.every(i=>i.naturalWidth>0)});
+if(!images)throw Error('Image manquante');
+if(errors.length)throw Error(errors.join(';'));
+console.log('27 diapositives : ordre, images, zoom, navigation et largeur mobile vérifiés.');await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});
