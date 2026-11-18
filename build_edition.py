@@ -1,5 +1,5 @@
 from pathlib import Path
-import re,base64,io
+import re,base64,io,json
 from PIL import Image
 r=Path(__file__).resolve().parent
 d=r/'dist'
@@ -27,8 +27,11 @@ def version(page,offline):
  page=page.replace('href="interactive.css"','href="interactive.css?v=curseur"') if not offline else page
  styles=(d/'edition.css').read_text(encoding='utf-8')
  if offline:styles=styles.replace('couverture.webp','data:image/webp;base64,'+base64.b64encode((d/'couverture.webp').read_bytes()).decode())
+ if offline:page=page.replace('</head>','<script>window.HEXAGONE_EXPORT_FONTS='+json.dumps({w:'data:font/ttf;base64,'+base64.b64encode((d/'fonts'/f'barlow-{w}.ttf').read_bytes()).decode() for w in [400,700]})+';</script></head>')
+ download=(d/'download.js').read_text(encoding='utf-8-sig')
+ page=page.replace('</body>', ('<script>'+download+'</script>' if offline else '<script src="download.js?v=1"></script>')+'</body>')
  effect=(d/'lecture.js').read_text(encoding='utf-8-sig')
  page=page.replace('</body>', ('<script>'+effect+'</script>' if offline else '<script src="lecture.js?v=3"></script>')+'</body>')
- return page.replace('</head>',('<style>'+styles+'</style>' if offline else '<link rel="stylesheet" href="edition.css?v=barres-cote-a-cote">')+'</head>',1)
+ return page.replace('</head>',('<style>'+styles+'</style>' if offline else '<link rel="stylesheet" href="edition.css?v=export-png">')+'</head>',1)
 for source,dest,offline in [(d/'index.html',d/'edition.html',False),(r.parent/'Interface_Hexagone.html',r.parent/'Interface_Hexagone_V2.html',True)]:
  dest.write_text(version(source.read_text(encoding='utf-8'),offline),encoding='utf-8')
