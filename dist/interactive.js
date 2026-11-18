@@ -81,7 +81,7 @@ function create(g){
   const horizontal=g.kind.startsWith('BAR')||root.clientWidth<900;
   return g.series.map((s,k)=>({type:'bar',orientation:horizontal?'h':'v',name:s.name,showlegend:false,
    x:ids.map(i=>horizontal?s.values[i]:g.categories[i]),y:ids.map(i=>horizontal?g.categories[i]:s.values[i]),
-   customdata:ids.map(i=>[g.categories[i],s.values[i],i]),marker:{pattern:{shape:ids.map(i=>/États-Unis|Etats-Unis/.test(g.categories[i])?'/':''),fgcolor:ids.map(i=>s.colors[i]),bgcolor:'#fff',size:7,solidity:.25},color:stack?s.color:ids.map(i=>s.colors[i]),opacity:stack?(state.focus===null||state.focus===k?1:.18):1},
+   customdata:ids.map(i=>[g.categories[i],s.values[i],i]),marker:{pattern:{shape:ids.map(i=>/États-Unis|Etats-Unis/.test(g.categories[i])?'/':''),fgcolor:ids.map(i=>s.colors[i]),bgcolor:ids.map(i=>/États-Unis|Etats-Unis/.test(g.categories[i])?'#fff':s.colors[i]),size:7,solidity:.25},color:stack?s.color:ids.map(i=>s.colors[i]),opacity:stack?(state.focus===null||state.focus===k?1:.18):1},
    text:ids.map(i=>stack&&s.values[i]<4?'':fmt(s.values[i],g.unit,g.slide>=31?0:1)),textposition:stack?'inside':'none',textangle:!horizontal&&ids.length>15?-90:0,insidetextanchor:'middle',textfont:{size:15,weight:400,color:stack?s.color:ids.map(i=>s.colors[i])},cliponaxis:false,
    hovertemplate:'%{customdata[0]}<br>'+ (stack?html(s.name)+' : ':'')+'%{customdata[1]:.1f} '+html(g.unit)+'<extra></extra>'}));
  }
@@ -135,12 +135,12 @@ function create(g){
    return base;
   }
   const horizontal=data[0].orientation==='h';const count=data[0].x.length;
-  base.barmode=stack?'stack':'group';base.uniformtext={minsize:15,mode:'show'};
+  base.uirevision+='-'+(horizontal?'h':'v')+'-'+Math.round(root.clientWidth);base.barmode=stack?'stack':'group';base.uniformtext={minsize:15,mode:'show'};
   if(horizontal){
    height=Math.max(270,count*(narrow?45:35)+90);base.height=height;
    base.margin={t:20,r:90,b:55,l:g.categories.every(c=>CountryFlags.codes[c])?49:narrow?120:Math.min(220,Math.max(...g.categories.map(c=>c.length))*6+10)};
    base.yaxis={...axis,type:'category',tickfont:{size:16},autorange:'reversed',categoryorder:'array',categoryarray:data[0].y,showgrid:false,tickmode:'array',tickvals:data[0].y,ticktext:data[0].y.map(c=>wrapText(c,narrow?17:29))};
-   base.xaxis={...axis,ticksuffix:g.unit.includes('%')?' %':'',rangemode:'tozero',nticks:narrow?4:7};
+   base.xaxis={...axis,type:'linear',autorange:false,ticksuffix:g.unit.includes('%')?' %':'',rangemode:'tozero',nticks:narrow?4:7};
    if(stack){base.xaxis.range=[0,100];base.margin.r=15}
    else{let vals=data[0].x;const lo=Math.min(0,...vals),hi=Math.max(0,...vals),pad=(hi-lo)*.08||1;base.xaxis.range=[lo<0?lo-pad:0,hi+pad];base.annotations=data[0].y.map((cat,i)=>({xref:'x',x:vals[i],xshift:vals[i]<0?-5:5,yref:'y',y:cat,text:fmt(vals[i],g.unit),showarrow:false,captureevents:true,xanchor:vals[i]<0?'right':'left',font:{size:15,weight:cat==='France'?700:400,color:data[0].marker.color[i]}}));
     const measure=document.createElement('canvas').getContext('2d');measure.font='700 15px Barlow, Arial';const needed=Math.ceil(Math.max(...vals.map(v=>measure.measureText(fmt(v,g.unit)).width)))+12;
@@ -150,7 +150,7 @@ function create(g){
    base.margin={t:25,r:25,b:g.categories.every(c=>CountryFlags.codes[c])?54:g.categories.length>10?125:75,l:60};
    base.xaxis={...axis,type:'category',tickfont:{size:16},showgrid:false,categoryorder:'array',categoryarray:data[0].x,tickangle:g.categories.every(c=>CountryFlags.codes[c])?0:g.categories.length>10?-60:0,ticklabelstandoff:0,automargin:!g.categories.every(c=>CountryFlags.codes[c]),tickmode:'array',tickvals:data[0].x,ticktext:data[0].x.map(c=>g.categories.length>10?c:wrapText(c,18))};
    const vals=data[0].y,lo=Math.min(0,...vals),hi=Math.max(0,...vals),pad=(hi-lo)*.14||1;
-   base.yaxis={...axis,ticksuffix:g.unit.includes('%')?' %':'',range:[lo<0?lo-pad:0,hi+pad]};
+   base.yaxis={...axis,type:'linear',autorange:false,ticksuffix:g.unit.includes('%')?' %':'',range:[lo<0?lo-pad:0,hi+pad]};
    const dense=g.categories.length>15;
    const measure=document.createElement('canvas').getContext('2d');measure.font='700 15px Barlow, Arial';
    const labelHeight=dense?Math.ceil(Math.max(...vals.map(v=>measure.measureText(fmt(v,g.unit)).width)))+10:26;
@@ -163,6 +163,7 @@ function create(g){
   return base;
  }
  async function render(resetAxes=false){
+  if(root.closest('[hidden]')||root.clientWidth===0)return;
   if(busy){queued=true;return}busy=true;
   try{
    keys();showMatrix();const data=traces(),lay=layout(data);plot.style.height=lay.height+'px';

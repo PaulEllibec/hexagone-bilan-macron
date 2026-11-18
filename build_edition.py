@@ -21,7 +21,7 @@ def version(page,offline):
    pieces[i]=re.sub(r'(?i)\b(le|la|les|un|une|des|du|au|aux) +',lambda m:m[1]+'\u00a0',pieces[i])
   return ''.join(pieces)
  page=re.sub(r'<h([123])\b[^>]*>.*?</h\1>|<div class="chapter-introduction">.*?</div>',keep_articles,page,flags=re.S)
- page=page.replace('src="interactive.js"', 'src="interactive.js?v=revenu-tableau-unique"')
+ page=page.replace('src="interactive.js"', 'src="interactive.js?v=barres-fix-20261118"')
  page=page.replace('src="flags.js"', 'src="flags.js?v=revenu-reperes"')
  page=page.replace('src="charts-data.js"','src="charts-data.js?v=zone-euro"')
  page=page.replace('href="interactive.css"','href="interactive.css?v=curseur"') if not offline else page
