@@ -34,7 +34,7 @@ async function download(root,button){
   ctx.font='400 17px Barlow';let keyX=pad,keyY=0;
   for(const key of keys){key.width=ctx.measureText(key.name).width+34;if(keyX+key.width>totalWidth-pad){keyX=pad;keyY+=30}key.x=keyX;key.y=keyY;keyX+=key.width+14}
   const plotY=pad+title.length*32+12+subtitle.length*24+(keys.length?keyY+44:16);
-  const totalHeight=plotY+height+20+source.length*19+pad;
+  const totalHeight=plotY+height+20+source.length*19+pad+70;
   const scale=Math.min(2,Math.sqrt(24000000/(totalWidth*totalHeight)));
   canvas.width=Math.ceil(totalWidth*scale);canvas.height=Math.ceil(totalHeight*scale);ctx.scale(scale,scale);
   ctx.fillStyle='#fff';ctx.fillRect(0,0,totalWidth,totalHeight);ctx.textBaseline='top';
@@ -49,6 +49,9 @@ async function download(root,button){
    else{const style=getComputedStyle(flag);ctx.fillStyle=style.backgroundColor;ctx.beginPath();ctx.arc(x+w/2,fy+h/2,w/2,0,Math.PI*2);ctx.fill();ctx.fillStyle=style.color;ctx.font='700 19px Barlow';ctx.textAlign='center';ctx.fillText(flag.textContent,x+w/2,fy+1);ctx.textAlign='left'}
   }
   y=plotY+height+20;ctx.fillStyle='#496563';ctx.font='400 13px Barlow';for(const line of source){ctx.fillText(line,pad,y);y+=19}
+  const logo=await loadImage(window.HEXAGONE_EXPORT_LOGO||'hexagone-logo.png');
+  const logoWidth=210,logoHeight=logoWidth*logo.height/logo.width;
+  ctx.drawImage(logo,totalWidth-pad-logoWidth,totalHeight-pad-logoHeight,logoWidth,logoHeight);
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('Export indisponible');
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Hexagone-'+root.id+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
  }catch(error){console.error(error);button.title='Le téléchargement a échoué. Réessayez.';const message=document.createElement('p');message.setAttribute('role','alert');message.textContent=button.title;button.parentElement.append(message)}
