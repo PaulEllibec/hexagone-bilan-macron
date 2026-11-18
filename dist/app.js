@@ -1,33 +1,26 @@
-const sections=[...document.querySelectorAll('.slide-section')];
-const jump=document.getElementById('jump');
-const viewer=document.getElementById('viewer');
-const full=document.getElementById('full-slide');
-const zoom=document.getElementById('zoom');
-let returnFocus=null;
-jump.addEventListener('change',()=>{document.getElementById(jump.value).scrollIntoView({block:'start'});history.replaceState(null,'','#'+jump.value)});
+const sections=[...document.querySelectorAll('.foreword, .slide-section')];
+const header=document.querySelector('.topbar');
+const tabs=[...document.querySelectorAll('.top-tab')];
+let currentGroup='Finances publiques';
 let scheduled=false;
+new ResizeObserver(()=>{const height=header.getBoundingClientRect().height;document.documentElement.style.scrollPaddingTop=(height+18)+'px';document.body.style.paddingTop=height+'px'}).observe(header);
 function updateReading(){
  scheduled=false;
- let active=sections[0];
- for(const section of sections){if(section.getBoundingClientRect().top<=innerHeight*.4)active=section;else break}
- const index=Number(active.dataset.index)+1;
- document.getElementById('reading').textContent=String(index).padStart(2,'0')+' / 27';
- document.getElementById('progress-fill').style.width=(index/27*100)+'%';
- if(document.activeElement!==jump)jump.value=active.id;
- document.querySelectorAll('.chapter').forEach(link=>{const selected=link.dataset.group===active.dataset.group;link.classList.toggle('active',selected);if(selected)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current')});
+ const visible=sections.filter(section=>!section.hidden);
+ const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ for(const section of visible){for(const frame of section.querySelectorAll('.title-frame')){const top=frame.getBoundingClientRect().top;const progress=Math.max(0,Math.min(1,(innerHeight-top)/(innerHeight*.62)));frame.querySelector('h2').style.transform='scale('+(reduced?1:.82+.18*progress)+')'}}
+ let active=visible[0];
+ for(const section of visible){if(section.getBoundingClientRect().top<=innerHeight*.4)active=section;else break}
+ document.getElementById('progress-fill').style.width=((visible.indexOf(active)+1)/visible.length*100)+'%';
 }
+function selectGroup(group,scroll=true){
+ currentGroup=group;
+ sections.forEach(section=>{section.hidden=section.dataset.group!==group});
+ document.querySelector('.intro').hidden=group==='Avant-propos';
+ tabs.forEach(tab=>{const selected=tab.dataset.group===group;tab.classList.toggle('active',selected);if(selected)tab.setAttribute('aria-current','page');else tab.removeAttribute('aria-current')});
+ if(scroll)window.scrollTo({top:0,behavior:'instant'});
+ requestAnimationFrame(()=>{updateReading();window.dispatchEvent(new Event('resize'))});
+}
+tabs.forEach(tab=>tab.addEventListener('click',event=>{event.preventDefault();selectGroup(tab.dataset.group)}));
 addEventListener('scroll',()=>{if(!scheduled){scheduled=true;requestAnimationFrame(updateReading)}},{passive:true});
-updateReading();
-document.querySelectorAll('[data-slide]').forEach(button=>button.addEventListener('click',()=>{
- returnFocus=button;
- const n=button.dataset.slide;
- full.src='slides/slide-'+n+'.png';
- full.alt=document.querySelector('#slide-'+n+' h2').textContent;
- document.getElementById('viewer-title').textContent='Diapositive '+n;
- zoom.value=100;full.style.width='100%';document.getElementById('zoom-value').textContent='100 %';
- viewer.showModal();document.body.classList.add('modal-open');document.querySelector('.viewer-scroll').scrollTo(0,0);
-}));
-zoom.addEventListener('input',()=>{full.style.width=zoom.value+'%';document.getElementById('zoom-value').textContent=zoom.value+' %'});
-document.getElementById('close-viewer').addEventListener('click',()=>viewer.close());
-viewer.addEventListener('click',event=>{if(event.target===viewer)viewer.close()});
-viewer.addEventListener('close',()=>{document.body.classList.remove('modal-open');returnFocus?.focus({preventScroll:true})});
+selectGroup('Finances publiques');
