@@ -1,0 +1,4 @@
+[build]
+  base = "."
+  publish = "dist"
+  command = "cp dist/edition.html dist/index.html"
