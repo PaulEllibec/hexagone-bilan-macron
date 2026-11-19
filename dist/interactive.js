@@ -86,9 +86,9 @@ function create(g){
    hovertemplate:'%{customdata[0]}<br>'+ (stack?html(s.name)+' : ':'')+'%{customdata[1]:.1f} '+html(g.unit)+'<extra></extra>'}));
  }
  function layout(data){
-  const narrow=root.clientWidth<500;let height=line?460:pie?410:550;
-  const base={autosize:true,height,paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{family:'Barlow, Arial, sans-serif',size:12,color:'#30535d'},separators:', ',margin:{t:28,r:24,b:65,l:65},showlegend:false,hoverlabel:{bgcolor:'rgba(255,255,255,0.94)',bordercolor:'rgba(0,0,0,0)',font:{family:'Barlow, Arial, sans-serif',size:15,color:'#183e49'}},hovermode:line?'x unified':'closest',dragmode:line?'zoom':false,bargap:.32,transition:{duration:0},uirevision:g.id+'-'+state.start+'-'+state.end};
-  const axis={gridcolor:'#e1e9eb',zeroline:false,automargin:true,tickfont:{size:12},fixedrange:!line};
+  const narrow=root.clientWidth<500;let height=line?(narrow?360:460):pie?(narrow?320:410):550;
+  const base={autosize:true,height,paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{family:'Barlow, Arial, sans-serif',size:12,color:'#30535d'},separators:', ',margin:{t:28,r:24,b:65,l:65},showlegend:false,hoverlabel:{bgcolor:'rgba(255,255,255,0.94)',bordercolor:'rgba(0,0,0,0)',font:{family:'Barlow, Arial, sans-serif',size:15,color:'#183e49'}},hovermode:line?'x unified':'closest',dragmode:line&&!narrow?'zoom':false,bargap:.32,transition:{duration:0},uirevision:g.id+'-'+state.start+'-'+state.end};
+  const axis={gridcolor:'#e1e9eb',zeroline:false,automargin:true,tickfont:{size:12},fixedrange:!line||narrow};
   if(pie){base.margin={t:5,r:5,b:5,l:5};return base}
   if(line){
    base.xaxis={...axis,type:'category',categoryorder:'array',categoryarray:g.categories,range:[state.start,state.end],tickmode:'array',tickvals:[],ticktext:[],title:{text:g.slide===21?'Quinquennat':'Période',standoff:15},showgrid:false};
@@ -114,7 +114,7 @@ function create(g){
     }
    }
    if(g.slide===14){
-    base.height=460;base.margin={t:28,r:46,b:72,l:52};
+    base.height=narrow?370:460;base.margin={t:28,r:46,b:72,l:52};
     base.xaxis.tickvals=g.categories;base.xaxis.ticktext=g.categories;base.xaxis.tickangle=-50;base.xaxis.tickfont={size:11};base.xaxis.title={text:''};
     base.xaxis.range=[-.25,10.5];base.yaxis.tickformat='.0f';
     const debt=g.id.endsWith('-1');base.yaxis.range=debt?[40,160]:[-10,2];base.yaxis.dtick=debt?20:2;
@@ -127,7 +127,7 @@ function create(g){
     base.xaxis.range=[-.3,8.3];base.xaxis.tickvals=g.categories;base.xaxis.ticktext=g.categories;base.xaxis.tickfont={size:narrow?10:15};base.xaxis.title={text:''};
    }
    if(g.slide===23){
-    base.height=530;base.margin={t:20,r:45,b:70,l:45};
+    base.height=narrow?390:530;base.margin={t:20,r:45,b:70,l:45};
     base.xaxis.range=[-.25,10.5];base.xaxis.tickvals=g.categories;base.xaxis.ticktext=g.categories;base.xaxis.tickangle=-50;base.xaxis.tickfont={size:11};base.xaxis.title={text:''};
     base.yaxis.range=[0,18];base.yaxis.dtick=2;base.yaxis.tickformat='.0f';base.annotations=[];
    }
@@ -168,7 +168,7 @@ function create(g){
   try{
    keys();showMatrix();const data=traces(),lay=layout(data);plot.style.height=lay.height+'px';
    if(resetAxes)lay.uirevision=Date.now();
-   await Plotly.react(plot,data,lay,{responsive:true,displayModeBar:false,displaylogo:false,scrollZoom:false,locale:'fr',doubleClick:'reset',staticPlot:false});
+   await Plotly.react(plot,data,lay,{responsive:true,displayModeBar:false,displaylogo:false,scrollZoom:false,locale:'fr',doubleClick:root.clientWidth<500?false:'reset',staticPlot:false});
    CountryFlags.decorate(status);CountryFlags.observePlot(plot);CountryFlags.plotFlags(plot);
    if(!rendered){
     rendered=true;

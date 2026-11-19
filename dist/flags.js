@@ -17,6 +17,7 @@ function plotFlags(plot){
  const layout=plot._fullLayout;if(!layout||!bounds.width)return;
  if(plot.id==='chart-28-0-plot'){
   for(const end of [0,8]){
+   const compact=plot.clientWidth<500;
    const rows=plot.data.filter(t=>t.visible!==false&&codes[t.name]).map(t=>({trace:t,y:layout.yaxis._offset+layout.yaxis.d2p(t.y[end])})).sort((a,b)=>a.y-b.y);
    for(let i=1;i<rows.length;i++)rows[i].y=Math.max(rows[i].y,rows[i-1].y+27);
    for(const {trace,y} of rows){
@@ -24,7 +25,7 @@ function plotFlags(plot){
     if(trace.name==='Zone euro'){flag=document.createElement('span');flag.textContent='€';Object.assign(flag.style,{background:'#003399',color:'#ffcc00',borderRadius:'50%',font:'700 19px/24px Barlow',textAlign:'center'})}
     else flag=image(trace.name);
     flag.classList.add('plot-flag');flag.title=trace.name;
-    Object.assign(flag.style,{left:(layout.xaxis._offset+layout.xaxis.c2p(end)+(end?8:-33))+'px',top:(y-12)+'px',width:'24px',height:'24px'});layer.append(flag);
+    Object.assign(flag.style,{left:(layout.xaxis._offset+layout.xaxis.c2p(end)+(end?8:compact?-17:-33))+'px',top:(y-12)+'px',width:'24px',height:'24px'});layer.append(flag);
    }
   }
  }

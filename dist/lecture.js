@@ -1,5 +1,6 @@
 /* Only graph headings respond to reading progress. */
 (()=>{
+ for(const br of document.querySelectorAll('.title-frame h2 br')){const gap=document.createElement('span');gap.className='mobile-title-space';gap.textContent=' ';br.after(gap)}
  const titles=[...document.querySelectorAll('.title-frame')];
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  let frame=0;
